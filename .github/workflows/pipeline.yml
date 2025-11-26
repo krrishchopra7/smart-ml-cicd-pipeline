@@ -1,0 +1,45 @@
+name: Smart ML CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  smart_pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Python dependencies
+      run: |
+        pip install scikit-learn joblib flask
+
+    - name: Train ML Model
+      run: |
+        python ml-model/train.py
+
+    - name: Predict Build Risk
+      id: predict
+      run: |
+        cat logs/fail1.log | python ml-model/predict.py > risk.txt
+        echo "RISK=$(cat risk.txt)" >> $GITHUB_ENV
+
+    - name: Stop Pipeline if High Risk
+      if: env.RISK > 0.5
+      run: |
+        echo "🚨 Build Failure Risk Too High ($RISK)"
+        exit 1
+
+    - name: Build Docker image
+      run: |
+        docker build -t smart-ci-app .
+
+    - name: (Optional) Push to Registry
+      run: echo "Registry push will be added later."
