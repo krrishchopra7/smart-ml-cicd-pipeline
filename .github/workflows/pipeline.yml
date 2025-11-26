@@ -28,7 +28,7 @@ jobs:
     - name: Predict Build Risk
       id: predict
       run: |
-        cat logs/fail1.log | python ml-model/predict.py > risk.txt
+        cat logs/success1.log | python ml-model/predict.py > risk.txt
         echo "RISK=$(cat risk.txt)" >> $GITHUB_ENV
 
     - name: Stop Pipeline if High Risk
